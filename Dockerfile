@@ -1,15 +1,8 @@
-FROM alpine:3.20.1
+FROM jlesage/baseimage-gui:alpine-3.20-v4
 
-# hadolint ignore=DL3018
-RUN set -ex; \
-    apk add --no-cache fail2ban tzdata util-linux-misc bash nftables ip6tables; \
-    mv /etc/fail2ban/filter.d/common.conf /tmp/; \
-    rm -r /etc/fail2ban/jail.d/*; \
-    rm -r /etc/fail2ban/filter.d/*; \
-    mv /tmp/common.conf /etc/fail2ban/filter.d/
+RUN add-pkg bash
 
-COPY --chmod=775 start.sh /start.sh
+COPY startapp.sh /startapp.sh
 
-# hadolint ignore=DL3002
-USER root
-ENTRYPOINT [ "/start.sh" ]
+# Set the name of the application.
+RUN set-cont-env APP_NAME "borg-viewer"
