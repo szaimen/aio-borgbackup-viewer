@@ -1,6 +1,16 @@
 FROM jlesage/baseimage-gui:alpine-3.20-v4
 
-RUN add-pkg bash
+RUN set -ex; \
+    \
+    apk upgrade --no-cache -a; \
+    apk add --no-cache \
+        util-linux-misc \
+        bash \
+        borgbackup \
+        rsync \
+        fuse \
+        py3-llfuse \
+        jq
 
 COPY startapp.sh /startapp.sh
 
