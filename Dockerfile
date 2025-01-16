@@ -26,10 +26,15 @@ RUN set -ex; \
         rsync \
         fuse \
         py3-llfuse \
-        jq \
+        alpine-conf \
         nautilus \
         xterm \
         eog \
         gedit \
-        vlc
+        vlc \
+        font-terminus font-inconsolata font-dejavu font-noto font-noto-cjk font-awesome font-noto-extra font-liberation; \
+    setup-desktop gnome; \
+    rc-update add apk-polkit-server default
 # TODO: add further dependencies like e.g. grsync onlyoffice-desktopeditors
+# https://gitlab.alpinelinux.org/alpine/aports/-/issues/16847
+# https://gitlab.alpinelinux.org/alpine/aports/-/issues/14535
