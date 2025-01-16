@@ -3,7 +3,7 @@ FROM jlesage/baseimage-gui:alpine-3.20-v4
 COPY startapp.sh /startapp.sh
 
 # Set the name of the application.
-RUN set-cont-env APP_NAME "borg-viewer"
+RUN set-cont-env APP_NAME "Nextcloud AIO Borg Backup Viewer"
 
 # hadolint ignore=DL3002
 USER root
