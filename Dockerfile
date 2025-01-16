@@ -1,6 +1,6 @@
 FROM jlesage/baseimage-gui:alpine-3.20-v4
 
-COPY startapp.sh /startapp.sh
+COPY --chmod=775 startapp.sh /startapp.sh
 
 # Set the name of the application.
 RUN set-cont-env APP_NAME "Nextcloud AIO Borg Backup Viewer"
