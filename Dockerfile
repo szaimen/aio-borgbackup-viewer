@@ -1,4 +1,4 @@
-FROM jlesage/baseimage-gui:alpine-3.20-v4
+FROM jlesage/baseimage-gui:alpine-3.21-v4
 
 COPY --chmod=775 startapp.sh /startapp.sh
 
