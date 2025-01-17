@@ -11,5 +11,4 @@ clean_up_backup() {
 trap clean_up_backup SIGINT SIGTERM
 
 # Start xterm
-xhost +si:localuser:root
 exec xterm
