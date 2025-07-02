@@ -38,3 +38,8 @@ RUN set -ex; \
 # TODO: add further dependencies like e.g. grsync onlyoffice-desktopeditors
 # https://gitlab.alpinelinux.org/alpine/aports/-/issues/16847
 # https://gitlab.alpinelinux.org/alpine/aports/-/issues/14535
+
+
+# Needed for Nextcloud AIO so that image cleanup can work. 
+# Unfortunately, this needs to be set in the Dockerfile in order to work.
+LABEL org.label-schema.vendor="Nextcloud"
