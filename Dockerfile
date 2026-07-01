@@ -1,12 +1,9 @@
-FROM jlesage/baseimage-gui:alpine-3.21-v4
+FROM jlesage/baseimage-gui:alpine-3.24-v4
 
 COPY --chmod=775 startapp.sh /startapp.sh
 
 # Set the name of the application.
 RUN set-cont-env APP_NAME "Nextcloud AIO Borg Backup Viewer"
-
-# hadolint ignore=DL3002
-USER root
 
 ENV USER_ID=0 \
     GROUP_ID=0 \
@@ -15,11 +12,9 @@ ENV USER_ID=0 \
     SECURE_CONNECTION=1 \
     HOME=/root
 
-# hadolint ignore=DL3018
 RUN set -ex; \
     \
-    apk upgrade --no-cache -a; \
-    apk add --no-cache \
+    add-pkg \
         util-linux-misc \
         bash \
         borgbackup \
