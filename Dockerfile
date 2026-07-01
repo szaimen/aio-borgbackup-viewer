@@ -6,7 +6,7 @@ COPY --chmod=775 startapp.sh /startapp.sh
 RUN set-cont-env APP_NAME "Nextcloud AIO Borg Backup Viewer"
 
 # hadolint ignore=DL3002
-USER root
+USER 0
 
 ENV USER_ID=0 \
     GROUP_ID=0 \
