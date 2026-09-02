@@ -1,0 +1,5 @@
+#!/bin/sh
+# Nautilus refuses to start as root, but this container runs as root because
+# `borg mount` needs it. See https://github.com/szaimen/aio-borgbackup-viewer/issues/42
+
+exec su-exec viewer /usr/bin/nautilus "$@"
