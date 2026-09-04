@@ -133,12 +133,12 @@ jobs:
           add-paths: Dockerfile
           base: ${{ github.event.repository.default_branch }}
           branch: automation/update-baseimage-gui
-          commit-message: chore: update baseimage-gui to ${{ steps.resolve-tag.outputs.latest_tag }}
+          commit-message: "chore: update baseimage-gui to ${{ steps.resolve-tag.outputs.latest_tag }}"
           delete-branch: true
           labels: |
             3. to review
             dependencies
-          title: chore: update baseimage-gui to ${{ steps.resolve-tag.outputs.latest_tag }}
+          title: "chore: update baseimage-gui to ${{ steps.resolve-tag.outputs.latest_tag }}"
           body: |
             ## Summary
             - updates `jlesage/baseimage-gui` from `${{ steps.resolve-tag.outputs.current_tag }}` to `${{ steps.resolve-tag.outputs.latest_tag }}`
