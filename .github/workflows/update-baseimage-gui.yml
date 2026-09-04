@@ -1,0 +1,146 @@
+name: Update baseimage-gui
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * *'
+
+concurrency:
+  group: update-baseimage-gui
+  cancel-in-progress: false
+
+jobs:
+  update-baseimage-gui:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    name: update-baseimage-gui
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Resolve latest matching tag
+        id: resolve-tag
+        run: |
+          python <<'PY'
+          import json
+          import os
+          import re
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          dockerfile_path = Path("Dockerfile")
+          image_name = "jlesage/baseimage-gui"
+          dockerfile = dockerfile_path.read_text(encoding="utf-8")
+          match = re.search(
+              rf"^FROM\s+(?:--platform=\S+\s+)?{re.escape(image_name)}:(?P<tag>\S+)(?:\s+AS\s+\S+)?$",
+              dockerfile,
+              re.MULTILINE,
+          )
+          if match is None:
+              raise SystemExit(f"Could not find a FROM line for {image_name} in {dockerfile_path}")
+
+          current_tag = match.group("tag")
+          prefix, separator, version = current_tag.rpartition("-v")
+          if not separator or not version:
+              raise SystemExit(f"Unsupported tag format: {current_tag}")
+
+          pattern = re.compile(rf"^{re.escape(prefix)}-v(?P<version>\d+(?:\.\d+)*)$")
+          url = (
+              "https://hub.docker.com/v2/namespaces/jlesage/repositories/baseimage-gui/tags"
+              f"?name={urllib.parse.quote(prefix, safe='')}&page_size=100"
+          )
+
+          matching_tags = []
+          while url:
+              request = urllib.request.Request(
+                  url,
+                  headers={"User-Agent": "github-actions/baseimage-updater"},
+              )
+              with urllib.request.urlopen(request) as response:
+                  payload = json.load(response)
+
+              for result in payload.get("results", []):
+                  candidate = result["name"]
+                  candidate_match = pattern.fullmatch(candidate)
+                  if candidate_match is None:
+                      continue
+
+                  matching_tags.append(
+                      (
+                          tuple(int(part) for part in candidate_match.group("version").split(".")),
+                          candidate,
+                      )
+                  )
+
+              url = payload.get("next")
+
+          if not matching_tags:
+              raise SystemExit(f"No matching tags found for prefix {prefix}")
+
+          latest_tag = max(matching_tags)[1]
+          changed = str(current_tag != latest_tag).lower()
+
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+              print(f"current_tag={current_tag}", file=output)
+              print(f"latest_tag={latest_tag}", file=output)
+              print(f"changed={changed}", file=output)
+          PY
+
+      - name: Update Dockerfile
+        if: steps.resolve-tag.outputs.changed == 'true'
+        env:
+          CURRENT_TAG: ${{ steps.resolve-tag.outputs.current_tag }}
+          LATEST_TAG: ${{ steps.resolve-tag.outputs.latest_tag }}
+        run: |
+          python <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          path = Path("Dockerfile")
+          contents = path.read_text(encoding="utf-8")
+          updated_contents, replacements = re.subn(
+              rf"^(FROM\s+(?:--platform=\S+\s+)?jlesage/baseimage-gui:){re.escape(os.environ['CURRENT_TAG'])}((?:\s+AS\s+\S+)?)$",
+              rf"\1{os.environ['LATEST_TAG']}\2",
+              contents,
+              count=1,
+              flags=re.MULTILINE,
+          )
+          if replacements != 1:
+              raise SystemExit("Could not update Dockerfile")
+
+          path.write_text(updated_contents, encoding="utf-8")
+          PY
+
+      - name: Validate updated Dockerfile
+        if: steps.resolve-tag.outputs.changed == 'true'
+        run: docker build --file Dockerfile .
+
+      - name: Create pull request
+        if: steps.resolve-tag.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ github.token }}
+          add-paths: Dockerfile
+          base: ${{ github.event.repository.default_branch }}
+          branch: automation/update-baseimage-gui
+          commit-message: chore: update baseimage-gui to ${{ steps.resolve-tag.outputs.latest_tag }}
+          delete-branch: true
+          labels: |
+            3. to review
+            dependencies
+          title: chore: update baseimage-gui to ${{ steps.resolve-tag.outputs.latest_tag }}
+          body: |
+            ## Summary
+            - updates `jlesage/baseimage-gui` from `${{ steps.resolve-tag.outputs.current_tag }}` to `${{ steps.resolve-tag.outputs.latest_tag }}`
+            - keeps the existing Alpine tag family and only advances to matching upstream releases
+            - validates the updated `Dockerfile` with a Docker build before opening the pull request
