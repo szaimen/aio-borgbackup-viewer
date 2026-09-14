@@ -2,4 +2,6 @@
 # Nautilus refuses to start as root, but this container runs as root because
 # `borg mount` needs it. See https://github.com/szaimen/aio-borgbackup-viewer/issues/42
 
-exec su-exec viewer /usr/bin/nautilus "$@"
+# HOME is set explicitly because the app service runs with HOME=/config, which
+# the unprivileged user cannot write to.
+exec /opt/base/sbin/su-exec viewer env HOME=/home/viewer /usr/bin/nautilus "$@"

@@ -2,7 +2,9 @@ FROM jlesage/baseimage-gui:alpine-3.24-v4.13.2
 
 COPY --chmod=775 startapp.sh /startapp.sh
 # Nautilus refuses to start as root, so this wrapper starts it unprivileged.
-COPY --chmod=775 nautilus /opt/bin/nautilus
+# It must land in /usr/local/bin: the baseimage init resets PATH, so ENV PATH
+# cannot be used to shadow /usr/bin/nautilus.
+COPY --chmod=775 nautilus /usr/local/bin/nautilus
 
 # Set the name of the application.
 RUN set-cont-env APP_NAME "Nextcloud AIO Borg Backup Viewer"
@@ -12,8 +14,7 @@ ENV USER_ID=0 \
     WEB_AUDIO=1 \
     WEB_AUTHENTICATION=1 \
     SECURE_CONNECTION=1 \
-    HOME=/root \
-    PATH=/opt/bin:$PATH
+    HOME=/root
 
 RUN set -ex; \
     \
