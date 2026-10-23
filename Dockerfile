@@ -1,4 +1,4 @@
-FROM jlesage/baseimage-gui:alpine-3.24-v4.13.2
+FROM jlesage/baseimage-gui:alpine-3.24-v4
 
 COPY --chmod=775 startapp.sh /startapp.sh
 # Nautilus refuses to start as root, so this wrapper starts it unprivileged.
@@ -17,6 +17,7 @@ ENV USER_ID=0 \
     HOME=/root
 
 RUN set -ex; \
+    apk upgrade --no-cache -a; \
     \
     add-pkg \
         util-linux-misc \
